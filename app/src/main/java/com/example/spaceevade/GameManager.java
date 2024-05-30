@@ -18,6 +18,7 @@ import com.google.android.material.button.MaterialButton;
 import android.os.Handler;
 
 import java.util.List;
+import java.util.Random;
 
 public final class GameManager {
     public enum ESpriteType {
@@ -57,10 +58,10 @@ public final class GameManager {
         this.shipSpritePosition = Configuration.getNumberOfLanes() / 2;
 
         // Set commands
-        this.asteroidCommand = new AsteroidMoveDown();
+        this.asteroidCommand = new AsteroidMoveDown(this);
         this.shipCommands = new SpriteCommand[] {
-                new ShipMoveLeft(this.spritesPositionMatrix),
-                new ShipMoveRight(this.spritesPositionMatrix)
+                new ShipMoveLeft(this),
+                new ShipMoveRight(this)
         };
 
         // Embed commands into buttons
@@ -79,22 +80,27 @@ public final class GameManager {
         });
     }
 
-    public void run(int delayTime) {
+    public void run() {
         this.shipLaneLayoutManager.setupLayout(Configuration.getNumberOfLanes());
         this.asteroidGridLayoutManager.setupLayout((Configuration.getGameHeight() - 1) * Configuration.getNumberOfLanes());
-        tick(delayTime);
+        tick();
     }
 
-    private void tick(int delayTime) {
+    private void tick() {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 parseVisibilityPositionMatrix();
-                System.out.println("Tick");
-                handler.postDelayed(this, delayTime);
+                createAsteroidRandomly();
+                handler.postDelayed(this, 700);
             }
-        }, delayTime);
+        }, Configuration.getDelayInMills());
+    }
 
+    private void createAsteroidRandomly() {
+        Random rand = new Random();
+        int randomAsteroidPosition = rand.nextInt(Configuration.getNumberOfLanes());
+        // TODO Add asteroid to view
     }
 
     private void parseVisibilityPositionMatrix() {
@@ -118,5 +124,21 @@ public final class GameManager {
 
     public int[][] getSpritesPositionMatrix() {
         return spritesPositionMatrix;
+    }
+
+    public int getShipSpritePosition() {
+        return shipSpritePosition;
+    }
+
+    public List<Integer> getAsteroidSpritePositions() {
+        return asteroidSpritePositions;
+    }
+
+    public void setShipSpritePosition(int shipSpritePosition) {
+        this.shipSpritePosition = shipSpritePosition;
+    }
+
+    public void setAsteroidSpritePositions(List<Integer> asteroidSpritePositions) {
+        this.asteroidSpritePositions = asteroidSpritePositions;
     }
 }

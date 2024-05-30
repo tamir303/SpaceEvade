@@ -11,7 +11,6 @@ import com.google.android.material.shape.CornerFamily;
 import com.google.android.material.shape.ShapeAppearanceModel;
 
 public final class ShipLaneLayout extends Sprite {
-
     public ShipLaneLayout(Context context, LinearLayout layout) {
         super(context, layout);
     }

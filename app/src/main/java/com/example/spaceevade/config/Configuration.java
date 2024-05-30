@@ -64,4 +64,15 @@ public final class Configuration {
             return -1;
         }
     }
+
+    public static int getDelayInMills() {
+        if (jsonObject == null) {
+            throw new IllegalStateException("Configuration not loaded. Call loadConfiguration() first.");
+        }
+        try {
+            return Integer.parseInt(jsonObject.getString("delayInMills"));
+        } catch (JSONException e) {
+            return -1;
+        }
+    }
 }

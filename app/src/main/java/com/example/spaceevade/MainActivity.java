@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
                 shipLaneLayout,
                 buttons);
 
-        gameManager.run(700);
+        gameManager.run();
     }
 
     private void setViews() {
