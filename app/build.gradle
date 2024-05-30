@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.example.spaceevade'
-    compileSdkPreview "VanillaIceCream"
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.spaceevade"
-        minSdkPreview "VanillaIceCream"
-        targetSdkPreview "VanillaIceCream"
+        minSdk 26
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
