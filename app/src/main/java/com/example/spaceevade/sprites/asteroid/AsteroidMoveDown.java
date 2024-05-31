@@ -4,6 +4,7 @@ import com.example.spaceevade.GameManager;
 import com.example.spaceevade.config.Configuration;
 import com.example.spaceevade.sprites.SpriteCommand;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AsteroidMoveDown implements SpriteCommand {
@@ -16,19 +17,27 @@ public class AsteroidMoveDown implements SpriteCommand {
     public void execute() {
         int higherBoundRow = Configuration.getGameHeight() - 1;
         int[][] spritesPositionMatrix = gameManager.getSpritesPositionMatrix();
-        List<Integer> asteroidSpritePositions = this.gameManager.getAsteroidSpritePositions();
+        ArrayList<Integer> asteroidSpritePositions = this.gameManager.getAsteroidSpritePositions();
 
+        // Update all asteroids position to drop one lane
+        asteroidSpritePositions.replaceAll(i -> i + Configuration.getNumberOfLanes());
+
+        // Update position visibility matrix to match asteroids positions
         for (int positionIndex : asteroidSpritePositions) {
             // Move each asteroid down
             int row = positionIndex / (Configuration.getGameHeight() - 1);
             int col = positionIndex % Configuration.getNumberOfLanes();
 
-            if (row + 1 == higherBoundRow)
-                spritesPositionMatrix[row][col] = GameManager.ESpriteType.Empty.ordinal();
+            if (row == higherBoundRow)
+                spritesPositionMatrix[row - 1][col] = GameManager.ESpriteType.Empty.ordinal();
             else {
-                spritesPositionMatrix[row][col] = GameManager.ESpriteType.Empty.ordinal();
-                spritesPositionMatrix[row + 1][col] = GameManager.ESpriteType.Asteroid.ordinal();
+                // TODO make sure not out of lower bound
+                spritesPositionMatrix[row - 1][col] = GameManager.ESpriteType.Empty.ordinal();
+                spritesPositionMatrix[row][col] = GameManager.ESpriteType.Asteroid.ordinal();
             }
         }
+
+        // Filter all asteroids that next jump will result will cause out of bounds
+        asteroidSpritePositions.removeIf(i -> i >= (Configuration.getGameHeight() - 1) * Configuration.getNumberOfLanes());
     }
 }

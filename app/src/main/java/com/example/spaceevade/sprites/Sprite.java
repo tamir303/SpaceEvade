@@ -39,4 +39,5 @@ public abstract class Sprite {
         sprites.get(index).setVisibility(ViewGroup.VISIBLE);
     }
 
-    public void setInvisibile(int index) { sprites.get(index).setVisibility(ViewGroup.INVISIBLE); }}
+    public void setInvisibile(int index) { sprites.get(index).setVisibility(ViewGroup.INVISIBLE); }
+}

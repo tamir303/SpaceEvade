@@ -17,6 +17,7 @@ import com.google.android.material.button.MaterialButton;
 
 import android.os.Handler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -34,11 +35,10 @@ public final class GameManager {
     private final MaterialButton[] buttons;
     private final int[][] spritesPositionMatrix;
     private int shipSpritePosition;
-    private List<Integer> asteroidSpritePositions;
+    private ArrayList<Integer> asteroidSpritePositions;
     private final SpriteCommand[] shipCommands;
-    private SpriteCommand asteroidCommand;
+    private final SpriteCommand asteroidCommand;
     private int score = 0;
-
 
     public GameManager(Context context,
                        GridLayout androidLanesGridLayout,
@@ -56,6 +56,7 @@ public final class GameManager {
         this.spritesPositionMatrix = new int[Configuration.getGameHeight()][Configuration.getNumberOfLanes()];
         this.spritesPositionMatrix[Configuration.getGameHeight() - 1][Configuration.getNumberOfLanes() / 2] = ESpriteType.Ship.ordinal();
         this.shipSpritePosition = Configuration.getNumberOfLanes() / 2;
+        this.asteroidSpritePositions = new ArrayList<>();
 
         // Set commands
         this.asteroidCommand = new AsteroidMoveDown(this);
@@ -90,8 +91,9 @@ public final class GameManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                parseVisibilityPositionMatrix();
-                createAsteroidRandomly();
+                createAsteroidRandomly();           // Create random asteroid on top
+                parseVisibilityPositionMatrix();    // Make all entities visible
+                asteroidCommand.execute();          // Make asteroids go down one tile
                 handler.postDelayed(this, 700);
             }
         }, Configuration.getDelayInMills());
@@ -100,7 +102,8 @@ public final class GameManager {
     private void createAsteroidRandomly() {
         Random rand = new Random();
         int randomAsteroidPosition = rand.nextInt(Configuration.getNumberOfLanes());
-        // TODO Add asteroid to view
+        spritesPositionMatrix[0][randomAsteroidPosition] = ESpriteType.Asteroid.ordinal();
+        asteroidSpritePositions.add(randomAsteroidPosition);
     }
 
     private void parseVisibilityPositionMatrix() {
@@ -130,7 +133,7 @@ public final class GameManager {
         return shipSpritePosition;
     }
 
-    public List<Integer> getAsteroidSpritePositions() {
+    public ArrayList<Integer> getAsteroidSpritePositions() {
         return asteroidSpritePositions;
     }
 
@@ -138,7 +141,7 @@ public final class GameManager {
         this.shipSpritePosition = shipSpritePosition;
     }
 
-    public void setAsteroidSpritePositions(List<Integer> asteroidSpritePositions) {
+    public void setAsteroidSpritePositions(ArrayList<Integer> asteroidSpritePositions) {
         this.asteroidSpritePositions = asteroidSpritePositions;
     }
 }
