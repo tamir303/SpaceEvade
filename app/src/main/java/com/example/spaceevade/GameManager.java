@@ -7,12 +7,14 @@ import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
 import com.example.spaceevade.config.Configuration;
-import com.example.spaceevade.sprites.SpriteCommand;
+import com.example.spaceevade.observers.Observer;
+import com.example.spaceevade.observers.ObserverActions;
+import com.example.spaceevade.commands.SpriteCommand;
 import com.example.spaceevade.sprites.asteroid.AsteroidGridLayout;
-import com.example.spaceevade.sprites.asteroid.AsteroidMoveDown;
+import com.example.spaceevade.commands.AsteroidMoveDown;
 import com.example.spaceevade.sprites.ship.ShipLaneLayout;
-import com.example.spaceevade.sprites.ship.ShipMoveLeft;
-import com.example.spaceevade.sprites.ship.ShipMoveRight;
+import com.example.spaceevade.commands.ShipMoveLeft;
+import com.example.spaceevade.commands.ShipMoveRight;
 import com.google.android.material.button.MaterialButton;
 
 import android.os.Handler;
@@ -21,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public final class GameManager {
+public final class GameManager implements ObserverActions {
     public enum ESpriteType {
         Empty,
         Ship,
@@ -30,15 +32,17 @@ public final class GameManager {
 
     private final Context context;
     private final Handler handler;
+    private final Random rand;
     private final AsteroidGridLayout asteroidGridLayoutManager;
     private final ShipLaneLayout shipLaneLayoutManager;
     private final MaterialButton[] buttons;
     private final int[][] spritesPositionMatrix;
     private int shipSpritePosition;
-    private ArrayList<Integer> asteroidSpritePositions;
     private final SpriteCommand[] shipCommands;
     private final SpriteCommand asteroidCommand;
+    private List<Observer> observers;
     private int score = 0;
+    private boolean collision = false;
 
     public GameManager(Context context,
                        GridLayout androidLanesGridLayout,
@@ -46,6 +50,8 @@ public final class GameManager {
                        MaterialButton[] buttons) {
         this.context = context;
         this.handler = new Handler(Looper.getMainLooper());
+        this.rand = new Random();
+        this.observers = new ArrayList<>();
         Configuration.loadConfiguration(context, R.raw.config);
 
         // Initialize Asteroid and Ship Layouts as lanes
@@ -56,7 +62,6 @@ public final class GameManager {
         this.spritesPositionMatrix = new int[Configuration.getGameHeight()][Configuration.getNumberOfLanes()];
         this.spritesPositionMatrix[Configuration.getGameHeight() - 1][Configuration.getNumberOfLanes() / 2] = ESpriteType.Ship.ordinal();
         this.shipSpritePosition = Configuration.getNumberOfLanes() / 2;
-        this.asteroidSpritePositions = new ArrayList<>();
 
         // Set commands
         this.asteroidCommand = new AsteroidMoveDown(this);
@@ -91,19 +96,29 @@ public final class GameManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                createAsteroidRandomly();           // Create random asteroid on top
-                parseVisibilityPositionMatrix();    // Make all entities visible
-                asteroidCommand.execute();          // Make asteroids go down one tile
-                handler.postDelayed(this, 700);
+                createAsteroidRandomly(); // Create random asteroid on top
+                makeAsteroidFall(); // Make asteroids go down one tile
+                notifyObservers();
+                if (collision) {
+                    try {
+                        super.finalize();
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                handler.postDelayed(this, Configuration.getDelayInMills());
             }
-        }, Configuration.getDelayInMills());
+        }, 0);
     }
 
     private void createAsteroidRandomly() {
-        Random rand = new Random();
         int randomAsteroidPosition = rand.nextInt(Configuration.getNumberOfLanes());
         spritesPositionMatrix[0][randomAsteroidPosition] = ESpriteType.Asteroid.ordinal();
-        asteroidSpritePositions.add(randomAsteroidPosition);
+        parseVisibilityPositionMatrix();
+    }
+
+    private void makeAsteroidFall() {
+        asteroidCommand.execute();
     }
 
     private void parseVisibilityPositionMatrix() {
@@ -121,8 +136,36 @@ public final class GameManager {
                 shipLaneLayoutManager.setInvisibile(i);
     }
 
+    @Override
+    public void attach(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void detach(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (Observer observer : observers)
+            observer.update(this);
+    }
+
     public int getScore() {
         return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public boolean isCollision() {
+        return collision;
+    }
+
+    public void setCollision(boolean collision) {
+        this.collision = collision;
     }
 
     public int[][] getSpritesPositionMatrix() {
@@ -133,15 +176,7 @@ public final class GameManager {
         return shipSpritePosition;
     }
 
-    public ArrayList<Integer> getAsteroidSpritePositions() {
-        return asteroidSpritePositions;
-    }
-
     public void setShipSpritePosition(int shipSpritePosition) {
         this.shipSpritePosition = shipSpritePosition;
-    }
-
-    public void setAsteroidSpritePositions(ArrayList<Integer> asteroidSpritePositions) {
-        this.asteroidSpritePositions = asteroidSpritePositions;
     }
 }

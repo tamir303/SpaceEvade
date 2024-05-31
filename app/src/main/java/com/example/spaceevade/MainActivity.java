@@ -6,6 +6,7 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.spaceevade.observers.CollisionObserver;
 import com.google.android.material.button.MaterialButton;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
                 shipLaneLayout,
                 buttons);
 
+        gameManager.attach(new CollisionObserver());
         gameManager.run();
     }
 

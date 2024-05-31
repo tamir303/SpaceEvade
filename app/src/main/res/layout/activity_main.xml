@@ -22,12 +22,13 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
             <!--Health Container-->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/livesLayout"
-                android:layout_width="160dp"
+                android:layout_width="130dp"
                 android:layout_height="match_parent"
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="16dp"
@@ -66,18 +67,19 @@
                 android:id="@+id/scoreLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="80dp"
+                android:layout_marginStart="50dp"
                 android:orientation="horizontal">
 
                 <!--Score Text-->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/score_txt"
-                    android:layout_width="wrap_content"
+                    android:layout_width="25dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
+                    android:layout_weight="2"
                     android:text="@string/score_text"
                     android:textColor="@color/white"
-                    android:textSize="30sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <!--Game Total Score-->
@@ -88,10 +90,11 @@
                     android:layout_marginStart="5dp"
                     android:autoSizeTextType="uniform"
                     android:autoSizeMinTextSize="12sp"
-                    android:autoSizeMaxTextSize="100sp"
+                    android:autoSizeMaxTextSize="80sp"
+                    android:layout_weight="1"
                     android:text="@string/start_score"
                     android:textStyle="bold"
-                    android:textSize="30sp"
+                    android:textSize="20sp"
                     android:textColor="@color/white"
                     android:layout_marginTop="15dp"/>
 
@@ -106,12 +109,14 @@
             android:layout_weight="6"
             android:orientation="vertical">
 
-            <!--Android Lanes Container-->
+            <!--Asteroid Lanes Container-->
             <GridLayout
                 android:id="@+id/androidLanesGridLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:layout_weight="5"
+                android:columnCount="10"
+                android:rowCount="10"
                 android:orientation="horizontal" />
 
             <!--Ship Lane Container-->
@@ -120,6 +125,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:orientation="horizontal" />
 
         </LinearLayout>

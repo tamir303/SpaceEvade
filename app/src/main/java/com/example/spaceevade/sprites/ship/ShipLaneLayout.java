@@ -17,22 +17,32 @@ public final class ShipLaneLayout extends Sprite {
 
     @Override
     protected ShapeableImageView createShapeableImageView(int id) {
-        // Create a ShapeableImageView
+        // Create a ShapeableImageView instance
         ShapeableImageView shipImageView = new ShapeableImageView(context);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1 // layout_weight
-        );
-        shipImageView.setLayoutParams(layoutParams);
-        shipImageView.setImageResource(R.drawable.ic_spaceship);
 
+        // Set layout parameters with a weight for proportional resizing
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                0, // Width set to 0 for weight-based resizing
+                ViewGroup.LayoutParams.WRAP_CONTENT, // Height wraps content
+                1 // Weight to distribute available space evenly
+        );
+        layoutParams.setMargins(16, 16, 16, 16);
+        shipImageView.setLayoutParams(layoutParams);
+
+        // Set the image resource for the ShapeableImageView
+        shipImageView.setImageResource(R.drawable.ic_spaceship); // Replace with your drawable resource
+
+        // Customize the shape appearance with rounded corners
         ShapeAppearanceModel shapeAppearanceModel = new ShapeAppearanceModel()
                 .toBuilder()
                 .setAllCorners(CornerFamily.ROUNDED, 16) // 16dp rounded corners
                 .build();
         shipImageView.setShapeAppearanceModel(shapeAppearanceModel);
 
+        // Set a stroke width
+        shipImageView.setStrokeWidth(4); // 4dp stroke width
+
+        // Set a unique ID for the ShapeableImageView
         shipImageView.setId(id);
 
         return shipImageView;
