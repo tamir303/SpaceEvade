@@ -1,182 +1,101 @@
 package com.example.spaceevade;
 
-import android.content.Context;
-import android.os.Looper;
-import android.view.View;
-import android.widget.GridLayout;
-import android.widget.LinearLayout;
-
-import com.example.spaceevade.config.Configuration;
-import com.example.spaceevade.observers.Observer;
-import com.example.spaceevade.observers.ObserverActions;
-import com.example.spaceevade.commands.SpriteCommand;
-import com.example.spaceevade.sprites.asteroid.AsteroidGridLayout;
-import com.example.spaceevade.commands.AsteroidMoveDown;
-import com.example.spaceevade.sprites.ship.ShipLaneLayout;
-import com.example.spaceevade.commands.ShipMoveLeft;
-import com.example.spaceevade.commands.ShipMoveRight;
-import com.google.android.material.button.MaterialButton;
-
-import android.os.Handler;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
-public final class GameManager implements ObserverActions {
-    public enum ESpriteType {
-        Empty,
-        Ship,
-        Asteroid
+public class GameManager {
+    private int score;
+    private int health;
+    private final int rowSize;
+    private final int colSize;
+    private final Random random;
+    private final int[][] mainTypeMatrix;
+    private int currentIndexHero;
+    private static final int SCORE_INCREMENT_MIN = 10;
+    private static final int SCORE_INCREMENT_MAX = 59; // Adjusted for better range
+    private static final int VILLAIN_THRESHOLD = 6;
+    private static final int HEART_THRESHOLD = 8;
+
+    public GameManager(int health, int sizeMatrix) {
+        this.rowSize = sizeMatrix*2;
+        this.colSize = sizeMatrix;
+        this.health = health;
+        this.currentIndexHero = colSize / 2;
+        this.score = 0;
+        this.random = new Random();
+        this.mainTypeMatrix = new int[rowSize][colSize];
+        initMatrixType();
     }
 
-    private final Context context;
-    private final Handler handler;
-    private final Random rand;
-    private final AsteroidGridLayout asteroidGridLayoutManager;
-    private final ShipLaneLayout shipLaneLayoutManager;
-    private final MaterialButton[] buttons;
-    private final int[][] spritesPositionMatrix;
-    private int shipSpritePosition;
-    private final SpriteCommand[] shipCommands;
-    private final SpriteCommand asteroidCommand;
-    private List<Observer> observers;
-    private int score = 0;
-    private boolean collision = false;
-
-    public GameManager(Context context,
-                       GridLayout androidLanesGridLayout,
-                       LinearLayout shipLaneLayout,
-                       MaterialButton[] buttons) {
-        this.context = context;
-        this.handler = new Handler(Looper.getMainLooper());
-        this.rand = new Random();
-        this.observers = new ArrayList<>();
-        Configuration.loadConfiguration(context, R.raw.config);
-
-        // Initialize Asteroid and Ship Layouts as lanes
-        this.asteroidGridLayoutManager = new AsteroidGridLayout(context, androidLanesGridLayout);
-        this.shipLaneLayoutManager = new ShipLaneLayout(context, shipLaneLayout);
-
-        // Initialize position matrix
-        this.spritesPositionMatrix = new int[Configuration.getGameHeight()][Configuration.getNumberOfLanes()];
-        this.spritesPositionMatrix[Configuration.getGameHeight() - 1][Configuration.getNumberOfLanes() / 2] = ESpriteType.Ship.ordinal();
-        this.shipSpritePosition = Configuration.getNumberOfLanes() / 2;
-
-        // Set commands
-        this.asteroidCommand = new AsteroidMoveDown(this);
-        this.shipCommands = new SpriteCommand[] {
-                new ShipMoveLeft(this),
-                new ShipMoveRight(this)
-        };
-
-        // Embed commands into buttons
-        this.buttons = buttons;
-        setButtonsListeners();
+    public int getRowSize() {
+        return rowSize;
     }
 
-    private void setButtonsListeners() {
-        this.buttons[0].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { shipCommands[0].execute(); }
-        });
-        this.buttons[1].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { shipCommands[1].execute(); }
-        });
+    public int getColSize() {
+        return colSize;
     }
 
-    public void run() {
-        this.shipLaneLayoutManager.setupLayout(Configuration.getNumberOfLanes());
-        this.asteroidGridLayoutManager.setupLayout((Configuration.getGameHeight() - 1) * Configuration.getNumberOfLanes());
-        tick();
+    public int getHealth() {
+        return health;
     }
 
-    private void tick() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                createAsteroidRandomly(); // Create random asteroid on top
-                makeAsteroidFall(); // Make asteroids go down one tile
-                notifyObservers();
-                if (collision) {
-                    try {
-                        super.finalize();
-                    } catch (Throwable e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                handler.postDelayed(this, Configuration.getDelayInMills());
-            }
-        }, 0);
+    public void decreaseHealth() {
+        health--;
     }
 
-    private void createAsteroidRandomly() {
-        int randomAsteroidPosition = rand.nextInt(Configuration.getNumberOfLanes());
-        spritesPositionMatrix[0][randomAsteroidPosition] = ESpriteType.Asteroid.ordinal();
-        parseVisibilityPositionMatrix();
+    public void increaseHealth() {
+        health++;
     }
 
-    private void makeAsteroidFall() {
-        asteroidCommand.execute();
+    private void initMatrixType() {
+        for (int[] row : mainTypeMatrix) {
+            java.util.Arrays.fill(row, -1);
+        }
     }
 
-    private void parseVisibilityPositionMatrix() {
-        for (int i = 0; i < spritesPositionMatrix.length - 1; i++)
-            for (int j = 0; j < spritesPositionMatrix[0].length; j++)
-                if (spritesPositionMatrix[i][j] != ESpriteType.Empty.ordinal())
-                    asteroidGridLayoutManager.setVisibile(i * spritesPositionMatrix[0].length + j);
-                else
-                    asteroidGridLayoutManager.setInvisibile(i * spritesPositionMatrix[0].length + j);
-
-        for (int i = 0; i < spritesPositionMatrix[0].length; i++)
-            if (spritesPositionMatrix[Configuration.getGameHeight() - 1][i] != ESpriteType.Empty.ordinal())
-                shipLaneLayoutManager.setVisibile(i);
-            else
-                shipLaneLayoutManager.setInvisibile(i);
+    public void addScore() {
+        score += random.nextInt(SCORE_INCREMENT_MAX - SCORE_INCREMENT_MIN + 1) + SCORE_INCREMENT_MIN;
     }
 
-    @Override
-    public void attach(Observer observer) {
-        observers.add(observer);
+    public void setTypeCellInMatrix(int row, int col, int type) {
+        mainTypeMatrix[row][col] = type;
     }
 
-    @Override
-    public void detach(Observer observer) {
-        observers.remove(observer);
+    public void moveHero(int direction) {
+        if (direction == 1 && currentIndexHero < colSize - 1) {
+            currentIndexHero++;
+        } else if (direction == -1 && currentIndexHero > 0) {
+            currentIndexHero--;
+        }
     }
 
-    @Override
-    public void notifyObservers() {
-        for (Observer observer : observers)
-            observer.update(this);
+    public int randomViewImage() {
+        return random.nextInt(colSize);
+    }
+
+    public int randTypeImage() {
+        int num = random.nextInt(10);
+        if (num < VILLAIN_THRESHOLD) {
+            return 0; // Villain
+        } else if (num < HEART_THRESHOLD) {
+            return 2; // Web score
+        } else {
+            return 1; // Heart
+        }
+    }
+
+    public void gameOver() {
+        System.out.println("Game Over");
+    }
+
+    public int getCurrentIndexHero() {
+        return currentIndexHero;
+    }
+
+    public int getTypeCellInMatrix(int i, int j) {
+        return mainTypeMatrix[i][j];
     }
 
     public int getScore() {
         return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    public boolean isCollision() {
-        return collision;
-    }
-
-    public void setCollision(boolean collision) {
-        this.collision = collision;
-    }
-
-    public int[][] getSpritesPositionMatrix() {
-        return spritesPositionMatrix;
-    }
-
-    public int getShipSpritePosition() {
-        return shipSpritePosition;
-    }
-
-    public void setShipSpritePosition(int shipSpritePosition) {
-        this.shipSpritePosition = shipSpritePosition;
     }
 }
