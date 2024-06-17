@@ -46,7 +46,7 @@ public class GameManager {
         health++;
     }
 
-    private void initMatrixType() {
+    public void initMatrixType() {
         for (int[] row : mainTypeMatrix) {
             java.util.Arrays.fill(row, -1);
         }
@@ -97,5 +97,19 @@ public class GameManager {
 
     public int getScore() {
         return score;
+    }
+
+    public void initGame() {
+        score = 0;
+        health = 3;
+        initMatrixType();
+    }
+
+    public void resetHealth() {
+        health = 3;
+    }
+
+    public void resetScore() {
+        score = 0;
     }
 }

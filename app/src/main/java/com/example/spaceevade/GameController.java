@@ -53,8 +53,7 @@ public class GameController {
 
     private void checkHealthHero() {
         if (gameManager.getHealth() == 0) {
-            stopGame();
-            gameOver();
+            resetGame();
         }
     }
 
@@ -70,4 +69,7 @@ public class GameController {
         timer.cancel();
     }
 
+    private void resetGame() {
+        runOnUiThread(gameView::resetGame);
+    }
 }

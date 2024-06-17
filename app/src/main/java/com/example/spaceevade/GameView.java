@@ -1,12 +1,20 @@
 package com.example.spaceevade;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
 import androidx.core.content.ContextCompat;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
+
+import android.os.Vibrator;
+import android.view.Gravity;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+
 
 public class GameView {
     private final ShapeableImageView[] game_IMG_hearts;
@@ -101,6 +109,7 @@ public class GameView {
             case 0: // Villain
                 gameManager.decreaseHealth();
                 game_IMG_hearts[gameManager.getHealth()].setVisibility(View.INVISIBLE);
+                vibrateAndToast();
                 break;
             case 1: // Heart
                 if (gameManager.getHealth() < game_IMG_hearts.length) {
@@ -142,5 +151,68 @@ public class GameView {
 
     public ViewGroup getGridLayout() {
         return gridLayout;
+    }
+
+    // TOAST
+
+    private void vibrateAndToast() {
+        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            vibrator.vibrate(100);
+            toastMessageCrash();
+        }
+
+    }
+
+    @SuppressLint({"DefaultLocale", "SetTextI18n"})
+    private void toastMessageCrash() {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") View layout = inflater.inflate(R.layout.toast_layout, null);
+        // Set the text for the custom Toast
+        MaterialTextView text = layout.findViewById(R.id.toast_text);
+        text.setText("Ouch! You've been hit! Health: " + gameManager.getHealth() + " lives left");
+
+        // Create the Toast with the custom layout
+        Toast toast = getToast(layout);
+        toast.show();
+    }
+
+    @NonNull
+    private Toast getToast(View layout) {
+        Toast toast = new Toast(context);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.setGravity(Gravity.CENTER, 0, 0);  // Adjust the gravity and offset as needed
+        return toast;
+    }
+
+    public void resetGame() {
+        // Reset all hearts to be visible
+        for (ShapeableImageView heart : game_IMG_hearts) {
+            heart.setVisibility(View.VISIBLE);
+        }
+
+        // Reset the score display
+        game_TXT_score.setText("0");
+
+        // Hide all the views in the grid layout
+        for (int i = 0; i < gameManager.getRowSize(); i++) {
+            for (int j = 0; j < gameManager.getColSize(); j++) {
+                gridLayout.getChildAt(i * gameManager.getColSize() + j).setVisibility(View.INVISIBLE);
+                gameManager.setTypeCellInMatrix(i, j, -1);  // Clear the game matrix types
+            }
+        }
+
+        // Reinitialize game manager states
+        gameManager.resetHealth();
+        gameManager.resetScore();
+        gameManager.initMatrixType();
+        gameManager.initGame();
+
+        // Update the hero's visibility in the last row
+        updateHeroVisibility();
+
+        // Ensure the grid layout is visible
+        gridLayout.setVisibility(View.VISIBLE);
     }
 }
